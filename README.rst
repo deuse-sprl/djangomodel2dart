@@ -8,6 +8,10 @@ DjangoModel2Dart
 .. image:: https://img.shields.io/github/license/deuse-sprl/djangomodel2dart
     :target: https://github.com/deuse-sprl/djangomodel2dart/blob/master/LICENSE
 
+.. image:: https://www.codefactor.io/repository/github/deuse-sprl/djangomodel2dart/badge/master
+   :target: https://www.codefactor.io/repository/github/deuse-sprl/djangomodel2dart/overview/master
+   :alt: CodeFactor
+
 ====================================================================
 Python utility to transform Django Models to Dart serializer Classes
 ====================================================================
@@ -41,6 +45,7 @@ Usage
 
     optional arguments:
       -h, --help       show this help message and exit
+      -f, --file       Creates a dart file with the transformed model (default: False)
       -c, --camelcase  Transforms the names to CamelCase when snake_case (default: False)
 
 To start using DjangoModel2Dart simply run :code:`python3 djangomodel2dart -c YourDesiredDartClassName` from

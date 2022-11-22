@@ -13,6 +13,9 @@ __pycache__/
 # Log files
 *.log
 
+# Dart files
+*.dart
+
 # Example app
 flutter_app_ok/
 

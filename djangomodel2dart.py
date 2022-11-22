@@ -111,6 +111,10 @@ def transform(input_string, dart_model_name, reformat_case_variable):
             dart_type = "bool"
         elif python_type == "IntegerField":
             dart_type = "int"
+        elif python_type == "SmallIntegerField":
+            dart_type = "int"
+        elif python_type == "PositiveSmallIntegerField":
+            dart_type = "int"
         elif python_type == "FloatField":
             dart_type = "double"
         elif python_type == "TimeField":
@@ -175,12 +179,14 @@ def to_camel_case(snake_str):
 parser = argparse.ArgumentParser(description="Python utility to transform Django Models to Dart serializer Classes",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("-c", "--camelcase", action="store_true", help="Transforms the names to CamelCase when snake_case")
+parser.add_argument("-f", "--file", action="store_true", help="Creates a dart file with the transformed model")
 parser.add_argument("name", help="Dart name of your model")
 args = parser.parse_args()
 config = vars(args)
 
 # Parameter to says if we should reformat variable from snake_case to camelCase
 reformat_case_variable = config.get("camelcase")
+write_to_file = config.get("file")
 
 # Name of the model in Dart
 dart_model_name = config.get("name")
@@ -202,7 +208,8 @@ with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
     print(dart_serializers)
 
     # Create dart file
-    f = open(f"{dart_model_name}.dart", "w")
-    f.write(dart_serializers)
-    f.close()
+    if write_to_file:
+        f = open(f"{dart_model_name}.dart", "w")
+        f.write(dart_serializers)
+        f.close()
 
