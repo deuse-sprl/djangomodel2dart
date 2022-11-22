@@ -5,11 +5,21 @@ from subprocess import call
 EDITOR = os.environ.get('EDITOR', 'vim')
 
 initial_message = b"""
-    # YOUR INPUT STRING IN THE FORMAT: VARIABLE_NAME = models.VARIABLE_TYPE(attributes). Maximum 1 line per field. e.g.:
+    # YOUR INPUT STRING IN THE FORMAT: VARIABLE_NAME = models.VARIABLE_TYPE(attributes). Multilines are supported:
     # question = models.CharField(verbose_name="Title of the question", max_length=255, blank=False, null=False)
-    # answer = models.CharField(verbose_name="Answer to the question", config_name='simple_toolbar', blank=True, null=True)
+    # question = models.CharField(
+    #    verbose_name="Title of the question",
+    #    max_length=255,
+    #    blank=False,
+    #    null=False
+    # )
     # expert = models.ForeignKey('Expert', verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
-    # score = models.IntegerField(default=0, help_text="Score of the answer to the question")
+    # expert = models.ForeignKey(
+    #    'Expert',
+    #    verbose_name='Expert',
+    #    on_delete=models.SET_NULL,
+    #    null=True, blank=True
+    # )
 """
 
 
@@ -38,7 +48,24 @@ def transform(input_string, dart_model_name, reformat_case_variable):
     dart_constructor_string = ""
     dart_from_json_string = ""
     dart_to_json_string = ""
-    for line in input_string.splitlines():
+
+    while (re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$))', input_string) != None):
+        """
+        '((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$)) explained :
+
+        (.|\n)*?      ---> matches the name of the field, there can be line jumps before we see the = character, and we use non-greedy search
+        =(.|\n)*?\(   ---> matches the = models.VARIABLE_TYPE(, you can have a line jump after the = 
+        (.|\n)*?\)    ---> matches the attributes until we close the model with )
+        (\n|$)        ---> field if last field is followed by either EOF or a newline
+        """
+        
+        # Extract field
+        findObject = re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$))', input_string)
+        input_string = input_string[findObject.span()[1] - 1:]
+
+        # Make multiline field single line
+        line = "".join(findObject.group(0).splitlines())
+
         if line == "" or line.strip().startswith("#"):
             continue
 
@@ -59,7 +86,7 @@ def transform(input_string, dart_model_name, reformat_case_variable):
         dart_ref = ""
 
         # Look for django base models
-        base_model = re.search("^models.(.*)\(.*$", gross_type)
+        base_model = re.search("^models\.(.*)\(.*$", gross_type)
         # Look for custom models
         custom_model = re.search("^(.*)\(.*$", gross_type)
 
@@ -73,6 +100,7 @@ def transform(input_string, dart_model_name, reformat_case_variable):
             referenced_model = re.search("^.*\((.*),.*$", gross_type)
             python_ref = referenced_model.group(1)
             dart_ref = python_ref + "Model"
+
 
         # We make the match between Django models and Dart types
         if python_type == "CharField":
@@ -105,29 +133,31 @@ def transform(input_string, dart_model_name, reformat_case_variable):
         dart_constructor_string += f"{8*' '}this.{var_name},\n"
 
         # From json
-        dart_from_json_string += f"{8*' '}{var_name} = json[{var_name_snake}], \n"
+        dart_from_json_string += f"{8*' '}{var_name} = json['{var_name_snake}'], \n"
 
         # To json
-        dart_to_json_string += f"{8*' '}'{var_name_snake}' : {var_name}, \n"
+        if dart_type != "String":
+            dart_to_json_string += f"{8*' '}'{var_name_snake}' : {var_name}.toString(), \n"
+        else:
+            dart_to_json_string += f"{8*' '}'{var_name_snake}' : {var_name}, \n"
 
     # Replace last character of string with ';'
     dart_from_json_string = dart_from_json_string.strip()[:-1] + ";"
 
     return f"""
 class {dart_model_name}
-
 {{
 {dart_string}
 
-{4*' '}{dart_model_name} {{
-{dart_constructor_string}
-{4*' '}}};
+{4*' '}{dart_model_name} ({{
+{dart_constructor_string.rstrip()}
+{4*' '}}});
 
 {4*' '}{dart_model_name}.fromJson(Map<String, dynamic> json):
 {8*' '}{dart_from_json_string}
 
 {4*' '}Map<String, dynamic> toJson() => {{
-{dart_to_json_string}
+{dart_to_json_string.rstrip()}
 {4*' '}}};
 }}
 """
@@ -168,6 +198,11 @@ with tempfile.NamedTemporaryFile(suffix=".tmp") as tf:
 
     dart_serializers = transform(edited_message, dart_model_name, reformat_case_variable)
 
-    # print the output in the console
+    # Print the output in the console
     print(dart_serializers)
+
+    # Create dart file
+    f = open(f"{dart_model_name}.dart", "w")
+    f.write(dart_serializers)
+    f.close()
 
