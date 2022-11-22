@@ -76,7 +76,7 @@ Your editor starts in which you provide the Model Fields, in this case :
     expert = models.ForeignKey('Expert', verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
     score = models.IntegerField(default=0, help_text="Score of the answer to the question")
 
-The CLI tool returns the following code structure and write it in a file named FrequentlyAskedQuestions.dart
+The CLI tool returns the following code structure and writes it in a file named FrequentlyAskedQuestions.dart
 
 .. code-block::
 
