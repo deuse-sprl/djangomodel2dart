@@ -56,11 +56,11 @@ def transform(input_string, dart_model_name, reformat_case_variable):
         (.|\n)*?      ---> matches the name of the field, there can be line jumps before we see the = character, and we use non-greedy search
         =(.|\n)*?\(   ---> matches the = models.VARIABLE_TYPE(, you can have a line jump after the = 
         (.|\n)*?\)    ---> matches the attributes until we close the model with )
-        (\n|$)        ---> field if last field is followed by either EOF or a newline
+        .*?(\n|$)     ---> field is followed by either EOF or a newline
         """
         
         # Extract field
-        findObject = re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$))', input_string)
+        findObject = re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\).*?(\n|$))', input_string)
         input_string = input_string[findObject.span()[1] - 1:]
 
         # Make multiline field single line

@@ -2,7 +2,7 @@
 DjangoModel2Dart
 ++++++++++++++++
 
-.. image:: https://img.shields.io/badge/version-0.2.0-blue
+.. image:: https://img.shields.io/badge/version-0.2.1-blue
     :target: https://github.com/deuse-sprl/djangomodel2dart
 
 .. image:: https://img.shields.io/github/license/deuse-sprl/djangomodel2dart
@@ -36,7 +36,7 @@ Usage
 -----
 .. code-block::
 
-    usage: djangomodel2dart.py [-h] [-c] name
+    usage: djangomodel2dart.py [-h] [-c] [-f] name
 
     Python utility to transform Django Models to Dart serializer Classes
 
@@ -48,7 +48,7 @@ Usage
       -f, --file       Creates a dart file with the transformed model (default: False)
       -c, --camelcase  Transforms the names to CamelCase when snake_case (default: False)
 
-To start using DjangoModel2Dart simply run :code:`python3 djangomodel2dart -c YourDesiredDartClassName` from
+To start using DjangoModel2Dart simply run :code:`python3 djangomodel2dart -c -f YourDesiredDartClassName` from
 the folder where you pulled DjangoModel2Dart. This will open your preferred code editor
 and if none is provided it will open VIM. Provide your ModelFields to translate in the editor.
 
@@ -63,14 +63,14 @@ Example for a simple FAQ model.
     class FrequentlyAskedQuestions(models.Model):
         question = models.CharField(verbose_name="Title of the question", max_length=255, blank=False, null=False)
         answer = models.CharField(verbose_name="Answer to the question", config_name='simple_toolbar', blank=True, null=True)
-        expert = models.ForeignKey('Expert', verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
+        expert = models.ForeignKey(Expert, verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
         score = models.IntegerField(default=0, help_text="Score of the answer to the question")
 
 Launch the script with following options:
 
 .. code-block::
 
-    python3 djangomodel2dart.py -c FrequentlyAskedQuestions
+    python3 djangomodel2dart.py -c -f FrequentlyAskedQuestions
 
 Your editor starts in which you provide the Model Fields, in this case :
 
@@ -78,10 +78,10 @@ Your editor starts in which you provide the Model Fields, in this case :
 
     question = models.CharField(verbose_name="Title of the question", max_length=255, blank=False, null=False)
     answer = models.CharField(verbose_name="Answer to the question", config_name='simple_toolbar', blank=True, null=True)
-    expert = models.ForeignKey('Expert', verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
+    expert = models.ForeignKey(Expert, verbose_name='Expert', on_delete=models.SET_NULL, null=True, blank=True)
     score = models.IntegerField(default=0, help_text="Score of the answer to the question")
 
-The CLI tool returns the following code structure and writes it in a file named FrequentlyAskedQuestions.dart
+The CLI tool returns the following code structure, and may write it in a file named FrequentlyAskedQuestions.dart if the -f option was used
 
 .. code-block::
 
