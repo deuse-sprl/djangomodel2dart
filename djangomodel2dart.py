@@ -1,3 +1,6 @@
+# Issue when () inside models attributes
+# add default pk in models
+
 import re, tempfile, os
 import argparse
 from subprocess import call
@@ -49,18 +52,18 @@ def transform(input_string, dart_model_name, reformat_case_variable):
     dart_from_json_string = ""
     dart_to_json_string = ""
 
-    while (re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$))', input_string) != None):
+    while (re.search('((.|\n)*?=(.|\n)*?\(([^(]|\(.*?\)|\n)*?\)(\n|$))', input_string) != None):
         """
         '((.|\n)*?=(.|\n)*?\((.|\n)*?\)(\n|$)) explained :
 
-        (.|\n)*?      ---> matches the name of the field, there can be line jumps before we see the = character, and we use non-greedy search
-        =(.|\n)*?\(   ---> matches the = models.VARIABLE_TYPE(, you can have a line jump after the = 
-        (.|\n)*?\)    ---> matches the attributes until we close the model with )
-        .*?(\n|$)     ---> field is followed by either EOF or a newline
+        (.|\n)*?             ---> matches the name of the field, there can be line jumps before we see the = character, and we use non-greedy search
+        =(.|\n)*?\(          ---> matches the = models.VARIABLE_TYPE(, you can have a line jump after the = 
+        (?:[^(]|\([^)]*\)    ---> matches the attributes until we close the model with )
+        .*?(\n|$)            ---> field is followed by either EOF or a newline
         """
         
         # Extract field
-        findObject = re.search('((.|\n)*?=(.|\n)*?\((.|\n)*?\).*?(\n|$))', input_string)
+        findObject = re.search('((.|\n)*?=(.|\n)*?\(([^(]|\(.*?\)|\n)*?\).*?(\n|$))', input_string)
         input_string = input_string[findObject.span()[1] - 1:]
 
         # Make multiline field single line
