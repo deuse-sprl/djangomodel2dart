@@ -58,7 +58,7 @@ def transform(input_string, dart_model_name, reformat_case_variable):
 
         (.|\n)*?             ---> matches the name of the field, there can be line jumps before we see the = character, and we use non-greedy search
         =(.|\n)*?\(          ---> matches the = models.VARIABLE_TYPE(, you can have a line jump after the = 
-        (?:[^(]|\([^)]*\)    ---> matches the attributes until we close the model with )
+        ([^(]|\(.*?\)|\n)*?  ---> matches the attributes until we close the model with )
         .*?(\n|$)            ---> field is followed by either EOF or a newline
         """
         
